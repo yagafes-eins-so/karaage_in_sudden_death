@@ -8,11 +8,7 @@ import 'cup_component.dart';
 import 'ground_component.dart';
 
 /// 投球結果を親(KaraageGame)へ伝えるコールバック。
-typedef OnThrowResolved = void Function({
-  required bool success,
-  required bool noBounce,
-  required bool centerHit,
-});
+typedef OnThrowResolved = void Function({required bool success});
 
 /// 唐揚げ本体。物理演算で自律的に飛び、地面/カップとの衝突で結果を確定する。
 class KaraageComponent extends PositionComponent
@@ -34,7 +30,6 @@ class KaraageComponent extends PositionComponent
   final OnThrowResolved onResolved;
 
   bool _resolved = false;
-  bool _hasBounced = false;
   Sprite? _sprite;
 
   @override
@@ -70,7 +65,7 @@ class KaraageComponent extends PositionComponent
     if (position.x > worldSize.x + 40 ||
         position.x < -40 ||
         position.y > worldSize.y + 40) {
-      _resolve(success: false, noBounce: false, centerHit: false);
+      _resolve(success: false);
     }
   }
 
@@ -81,11 +76,10 @@ class KaraageComponent extends PositionComponent
     if (_resolved) return;
 
     if (other is GroundComponent) {
-      _hasBounced = true;
       // 地面にはまだ「着地」なだけで、直後にコップ判定がなければ失敗確定にする。
       Future.microtask(() {
         if (!_resolved) {
-          _resolve(success: false, noBounce: false, centerHit: false);
+          _resolve(success: false);
         }
       });
       return;
@@ -93,23 +87,14 @@ class KaraageComponent extends PositionComponent
 
     if (other is CupComponent) {
       final fullyInOpening = other.isFullyInOpening(absolutePosition, size.x / 2);
-      final centerHit = other.isCenterHit(absolutePosition.x);
-      _resolve(
-        success: fullyInOpening,
-        noBounce: !_hasBounced,
-        centerHit: centerHit,
-      );
+      _resolve(success: fullyInOpening);
     }
   }
 
-  void _resolve({
-    required bool success,
-    required bool noBounce,
-    required bool centerHit,
-  }) {
+  void _resolve({required bool success}) {
     if (_resolved) return;
     _resolved = true;
-    onResolved(success: success, noBounce: noBounce, centerHit: centerHit);
+    onResolved(success: success);
     removeFromParent();
   }
 

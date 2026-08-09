@@ -3,27 +3,28 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/constants.dart';
-import '../../core/difficulty.dart';
 
-/// 紙コップ。左右に往復移動し、当たり判定と「中央/端」の分類を提供する。
+/// 紙コップ。左右に往復移動し、当たり判定を提供する。
 ///
 /// 判定の考え方:
 /// - `opening`(コップの飲み口=内側)に入れば成功
-/// - 成功時、着弾X座標がコップ中心からどれだけ近いかで center bonus を判定
 /// - `rim`(内側より少し広い外枠)にだけ当たった場合は失敗(コップ外側に当たる)
 class CupComponent extends PositionComponent with CollisionCallbacks {
   CupComponent({
     required this.travelMinX,
     required this.travelMaxX,
-    required Difficulty difficulty,
+    required double initialSpeed,
     required Vector2 position,
     required Vector2 size,
-  })  : _difficulty = difficulty,
+  })  : _speed = initialSpeed,
         super(position: position, size: size, anchor: Anchor.topCenter);
 
   final double travelMinX;
   final double travelMaxX;
-  Difficulty _difficulty;
+
+  /// 現在の移動速度(px/s)。サドンデスでinするたびに外部(GameViewModel)から
+  /// [updateSpeed] で更新される(難易度基準値からの倍率計算はViewModel側で行う)。
+  double _speed;
 
   double _direction = 1;
   Sprite? _sprite;
@@ -31,7 +32,8 @@ class CupComponent extends PositionComponent with CollisionCallbacks {
   /// コップ内側(成功判定)の当たり判定。カップ幅の80%を「開口部」として扱う。
   late final RectangleHitbox openingHitbox;
 
-  void updateDifficulty(Difficulty difficulty) => _difficulty = difficulty;
+  /// サドンデスでのin成功に応じて増加していく移動速度を反映する。
+  void updateSpeed(double speed) => _speed = speed;
 
   @override
   Future<void> onLoad() async {
@@ -60,8 +62,7 @@ class CupComponent extends PositionComponent with CollisionCallbacks {
   @override
   void update(double dt) {
     super.update(dt);
-    final speed = _difficulty.speed;
-    x += _direction * speed * dt;
+    x += _direction * _speed * dt;
     if (x >= travelMaxX) {
       x = travelMaxX;
       _direction = -1;
@@ -123,13 +124,6 @@ class CupComponent extends PositionComponent with CollisionCallbacks {
       Rect.fromLTWH(size.x * 0.12, -6, size.x * 0.76, 14),
       openingPaint,
     );
-  }
-
-  /// 着弾X座標(ワールド座標)からセンターヒットかどうかを判定する。
-  bool isCenterHit(double worldX) {
-    final centerX = absolutePosition.x;
-    final tolerance = size.x * GameConfig.cupCenterToleranceRatio;
-    return (worldX - centerX).abs() <= tolerance;
   }
 
   /// 成功した唐揚げの表示は廃止しています。

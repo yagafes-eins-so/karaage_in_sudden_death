@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../core/audio_manager.dart';
 import '../core/constants.dart';
-import '../models/rank.dart';
 import '../viewmodels/game_view_model.dart';
 import '../widgets/pop_button.dart';
 
-/// リザルト画面。合計スコア・成功数・成功率・ランクを表示し、リトライへ導線。
+/// リザルト画面。サドンデスの連続in記録だけを大きく表示し、リトライへ導線。
 class ResultOverlay extends StatelessWidget {
   const ResultOverlay({super.key, required this.viewModel});
 
@@ -14,15 +13,13 @@ class ResultOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final result = viewModel.buildResult();
-    final rank = result.rank;
+    final streakCount = viewModel.landedInCup;
     final screenSize = MediaQuery.of(context).size;
     final compact = screenSize.height < 480;
     final cardWidth = (screenSize.width * 0.85).clamp(220.0, 340.0);
     final cardPadding = compact ? const EdgeInsets.all(18) : const EdgeInsets.all(24);
     final titleFontSize = compact ? 20.0 : 22.0;
-    final scoreFontSize = compact ? 36.0 : 44.0;
-    final statFontSize = compact ? 18.0 : 20.0;
+    final streakFontSize = compact ? 56.0 : 72.0;
 
     return Container(
       color: AppColors.charcoal.withValues(alpha: 0.6),
@@ -57,43 +54,25 @@ class ResultOverlay extends StatelessWidget {
                           letterSpacing: 2,
                         ),
                       ),
-                      SizedBox(height: compact ? 6 : 8),
-                      _RankBadge(rank: rank, isPerfect: result.isPerfect),
-                      SizedBox(height: compact ? 8 : 12),
+                      SizedBox(height: compact ? 16 : 24),
                       Text(
-                        '${result.totalScore}',
+                        '$streakCount',
                         style: TextStyle(
                           color: AppColors.charcoal,
                           fontWeight: FontWeight.w900,
-                          fontSize: scoreFontSize,
+                          fontSize: streakFontSize,
                         ),
                       ),
                       const Text(
-                        'TOTAL SCORE',
+                        '連続成功',
                         style: TextStyle(
                           color: AppColors.charcoal,
                           fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                          fontSize: 14,
                           letterSpacing: 1,
                         ),
                       ),
-                      SizedBox(height: compact ? 12 : 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _StatColumn(
-                            label: '成功数',
-                            value: '${result.successCount} / ${result.throws.length}',
-                            fontSize: statFontSize,
-                          ),
-                          _StatColumn(
-                            label: '成功率',
-                            value: '${(result.successRate * 100).round()}%',
-                            fontSize: statFontSize,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: compact ? 16 : 24),
+                      SizedBox(height: compact ? 20 : 28),
                       PopButton(
                         label: 'もう一度',
                         color: AppColors.red,
@@ -125,80 +104,6 @@ class ResultOverlay extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _RankBadge extends StatelessWidget {
-  const _RankBadge({required this.rank, required this.isPerfect});
-  final Rank rank;
-  final bool isPerfect;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 84,
-          height: 84,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.yellow,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.charcoal, width: 4),
-          ),
-          child: Text(
-            rank.label,
-            style: const TextStyle(
-              color: AppColors.charcoal,
-              fontWeight: FontWeight.w900,
-              fontSize: 40,
-            ),
-          ),
-        ),
-        if (isPerfect) ...[
-          const SizedBox(height: 6),
-          const Text(
-            'PERFECT!!',
-            style: TextStyle(
-              color: AppColors.red,
-              fontWeight: FontWeight.w900,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _StatColumn extends StatelessWidget {
-  const _StatColumn({required this.label, required this.value, this.fontSize = 20});
-  final String label;
-  final String value;
-  final double fontSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: AppColors.charcoal,
-            fontWeight: FontWeight.w900,
-            fontSize: fontSize,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.charcoal,
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-          ),
-        ),
-      ],
     );
   }
 }

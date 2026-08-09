@@ -17,7 +17,7 @@ class TitleOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final compact = screenHeight < 480;
-    final titleFontSize = compact ? 32.0 : 40.0;
+    final titleFontSize = compact ? 24.0 : 30.0;
     final descriptionFontSize = compact ? 13.0 : 14.0;
     final titlePadding = compact
         ? const EdgeInsets.symmetric(horizontal: 22, vertical: 9)
@@ -48,7 +48,8 @@ class TitleOverlay extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        'からあげ in!',
+                        'からあげin!　サドンデス',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppColors.red,
                           fontWeight: FontWeight.w900,

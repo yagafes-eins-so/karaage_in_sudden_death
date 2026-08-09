@@ -50,11 +50,24 @@ class AudioManager {
     () async {
       try {
         await FlameAudio.bgm.play(_bgm, volume: 0.5);
+        // 前回セッションで上げた再生速度が残らないよう、再生開始時に必ず等倍へ戻す。
+        await FlameAudio.bgm.audioPlayer.setPlaybackRate(1.0);
       } catch (_) {}
     }();
   }
 
   void stopBgm() => FlameAudio.bgm.stop();
+
+  /// 紙コップの速度上昇(サドンデスの倍率)に合わせてBGMの再生速度を変える。
+  /// [rate] は1.0が等倍。
+  void setBgmSpeed(double rate) {
+    if (!_assetsAvailable) return;
+    () async {
+      try {
+        await FlameAudio.bgm.audioPlayer.setPlaybackRate(rate);
+      } catch (_) {}
+    }();
+  }
 
   void playClick() => _play(_sfxClick);
   void playCharge() => _play(_sfxCharge);

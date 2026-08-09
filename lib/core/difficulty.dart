@@ -1,9 +1,9 @@
 /// 難易度ごとのカップ移動パラメータ。
 /// プレイ回数(セッション数)に応じて `Difficulty.forSession` が段階を上げる。
 enum Difficulty {
-  easy(speed: 60, rangeRatio: 0.25, label: 'Easy'),
-  normal(speed: 110, rangeRatio: 0.35, label: 'Normal'),
-  hard(speed: 170, rangeRatio: 0.45, label: 'Hard');
+  easy(speed: 90, rangeRatio: 0.25, label: 'Easy'),
+  normal(speed: 165, rangeRatio: 0.35, label: 'Normal'),
+  hard(speed: 255, rangeRatio: 0.45, label: 'Hard');
 
   const Difficulty({
     required this.speed,

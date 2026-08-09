@@ -19,7 +19,7 @@ import 'physics/projectile_physics.dart';
 /// ゲーム本体。
 ///
 /// 設計方針:
-/// - このクラスは「配線役」に徹する。スコア計算はGameViewModelに、
+/// - このクラスは「配線役」に徹する。連続in数(サドンデス)の管理はGameViewModelに、
 ///   物理計算はProjectilePhysicsに、見た目は各Componentに委譲する。
 /// - GameViewModelの変更を購読し、overlays(Flutter Widget側)を切り替える。
 class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
@@ -79,7 +79,7 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
     cup = CupComponent(
       travelMinX: travelMinX,
       travelMaxX: travelMaxX,
-      difficulty: viewModel.currentDifficulty,
+      initialSpeed: viewModel.currentDifficulty.speed,
       position: Vector2(travelMinX, size.y * 0.52),
       size: Vector2(size.x * 0.13, size.y * 0.22),
     );
@@ -103,7 +103,8 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
         overlays.clear();
         overlays.add(GameOverlays.hud);
         overlays.add(GameOverlays.feedback);
-        cup.updateDifficulty(viewModel.currentDifficulty);
+        cup.updateSpeed(viewModel.cupSpeed);
+        AudioManager.instance.setBgmSpeed(viewModel.cupSpeedMultiplier);
         if (!_bgmStarted) {
           AudioManager.instance.playBgm();
           _bgmStarted = true;
@@ -113,7 +114,9 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
         _showOnly(GameOverlays.result);
         AudioManager.instance.stopBgm();
         _bgmStarted = false;
-        if (viewModel.buildResult().isPerfect) {
+        // サドンデスでは何連続inできたかを「Perfect」相当の見せ場として扱う。
+        // 閾値は旧来の5投固定制と同じ5連続を基準にしており、調整が必要ならここを変える。
+        if (viewModel.landedInCup >= 5) {
           AudioManager.instance.playPerfect();
         }
         break;
@@ -196,11 +199,7 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
     add(karaage);
   }
 
-  void _onThrowResolved({
-    required bool success,
-    required bool noBounce,
-    required bool centerHit,
-  }) {
+  void _onThrowResolved({required bool success}) {
     player.setState(success ? PlayerState.happy : PlayerState.sad);
     if (success) {
       AudioManager.instance.playSuccess();
@@ -213,13 +212,9 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
     Future.delayed(const Duration(milliseconds: 650), () {
       feedbackText.value = null;
 
-      // フィードバック表示が終わってからスコア登録することで、
-      // 5投目のリザルト表示がフィードバックの後に行われるようにする。
-      viewModel.registerThrow(
-        success: success,
-        noBounce: noBounce,
-        centerHit: centerHit,
-      );
+      // フィードバック表示が終わってから登録することで、
+      // ミス時のリザルト表示がフィードバックの後に行われるようにする。
+      viewModel.registerThrow(success: success);
     });
 
     Future.delayed(const Duration(milliseconds: 700), () {

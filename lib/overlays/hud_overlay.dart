@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import '../viewmodels/game_view_model.dart';
 
-/// プレイ中に常時表示するHUD。残投球数(ボールアイコンの点灯/消灯)とスコア。
+/// プレイ中に常時表示するHUD。サドンデスの連続in記録を右上に表示する。
 class HudOverlay extends StatelessWidget {
   const HudOverlay({super.key, required this.viewModel});
 
@@ -18,61 +18,24 @@ class HudOverlay extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 _Badge(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: List.generate(5, (i) {
-                      final used = i < (5 - viewModel.throwsLeft);
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Icon(
-                          Icons.circle,
-                          size: 14,
-                          color: used
-                              ? AppColors.charcoal.withOpacity(0.25)
-                              : AppColors.red,
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _Badge(
-                      child: Text(
-                        'SCORE ${viewModel.totalScore}',
+                    children: [
+                      const Icon(Icons.whatshot, size: 22, color: AppColors.charcoal),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${viewModel.landedInCup}連続',
                         style: const TextStyle(
                           color: AppColors.charcoal,
                           fontWeight: FontWeight.w900,
-                          fontSize: 16,
+                          fontSize: 22,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    _Badge(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.whatshot, size: 14, color: AppColors.charcoal),
-                          const SizedBox(width: 6),
-                          Text(
-                            'IN ${viewModel.landedInCup}',
-                            style: const TextStyle(
-                              color: AppColors.charcoal,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

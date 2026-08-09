@@ -20,9 +20,6 @@ class GameConfig {
   static const double designWidth = 960;
   static const double designHeight = 540;
 
-  /// 1プレイあたりの投球回数。
-  static const int totalThrows = 5;
-
   /// 物理: 重力加速度(px/s^2)。地球の9.8m/s^2をゲーム画面スケールに変換した値。
   static const double gravity = 980;
 
@@ -35,12 +32,14 @@ class GameConfig {
   /// 初速度の下限。これ未満のドラッグは投球とみなさない(誤操作防止)。
   static const double minDragDistance = 12;
 
-  /// スコア配点。
-  static const int scoreSuccess = 200;
-  static const int scoreBonusNoBounce = 50;
-  static const int scoreBonusCenter = 100;
-  static const int scoreBonusPerfect = 1000;
-
-  /// カップの中央判定の許容半径比(カップ幅に対する割合)。
-  static const double cupCenterToleranceRatio = 0.28;
+  /// サドンデス: 連続in回数に応じたカップ速度の倍率テーブル。
+  /// 1~5連続=1倍 / 6~10連続=1.5倍 / 11~15連続=2倍 / 16~20連続=2.5倍 / 21連続以上=3倍(上限)。
+  /// 段階の境界値・上限はここを変えるだけで調整できる。
+  static double cupSpeedMultiplierForStreak(int streak) {
+    if (streak <= 5) return 1.0;
+    if (streak <= 10) return 1.5;
+    if (streak <= 15) return 2.0;
+    if (streak <= 20) return 2.5;
+    return 3.0;
+  }
 }
