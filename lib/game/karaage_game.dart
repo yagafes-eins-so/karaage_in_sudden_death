@@ -38,6 +38,15 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
 
   bool _bgmStarted = false;
 
+  /// BGMの現在の再生速度と、これから近づけていく目標速度。
+  /// 段階的に変わる目標値に対して毎フレーム少しずつ追従させることで、
+  /// カクッと切り替わらず自然に加減速しているように聞こえるようにする。
+  double _bgmRate = 1.0;
+  double _bgmTargetRate = 1.0;
+
+  /// 目標速度への追従の速さ(大きいほど素早く目標に近づく)。調整用に変数化。
+  static const double _bgmRateFollowSpeed = 2.5;
+
   /// "IN!!" / "MISS" ポップアップ表示用。FeedbackOverlay が購読する。
   final ValueNotifier<String?> feedbackText = ValueNotifier(null);
 
@@ -104,8 +113,10 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
         overlays.add(GameOverlays.hud);
         overlays.add(GameOverlays.feedback);
         cup.updateSpeed(viewModel.cupSpeed);
-        AudioManager.instance.setBgmSpeed(viewModel.cupSpeedMultiplier);
+        _bgmTargetRate = viewModel.cupSpeedMultiplier;
         if (!_bgmStarted) {
+          // 新しいセッションの開始時は、直前の余韻を残さず等倍から始める。
+          _bgmRate = 1.0;
           AudioManager.instance.playBgm();
           _bgmStarted = true;
         }
@@ -114,6 +125,10 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
         _showOnly(GameOverlays.result);
         AudioManager.instance.stopBgm();
         _bgmStarted = false;
+        // ゲームオーバー時点でサドンデスによる速度上昇をリセットする
+        // (リザルト画面の裏でカップが速いまま動き続けるのを防ぐ)。
+        cup.updateSpeed(viewModel.currentDifficulty.speed);
+        _bgmTargetRate = 1.0;
         // サドンデスでは何連続inできたかを「Perfect」相当の見せ場として扱う。
         // 閾値は旧来の5投固定制と同じ5連続を基準にしており、調整が必要ならここを変える。
         if (viewModel.landedInCup >= 5) {
@@ -121,6 +136,26 @@ class KaraageGame extends FlameGame with DragCallbacks, HasCollisionDetection {
         }
         break;
     }
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _updateBgmRate(dt);
+  }
+
+  /// BGMの再生速度を目標値へ毎フレーム少しずつ近づけ、自然な加減速に見せる。
+  void _updateBgmRate(double dt) {
+    final diff = _bgmTargetRate - _bgmRate;
+    if (diff.abs() < 0.005) {
+      if (_bgmRate != _bgmTargetRate) {
+        _bgmRate = _bgmTargetRate;
+        AudioManager.instance.setBgmSpeed(_bgmRate);
+      }
+      return;
+    }
+    _bgmRate += diff * (dt * _bgmRateFollowSpeed).clamp(0.0, 1.0);
+    AudioManager.instance.setBgmSpeed(_bgmRate);
   }
 
   void _showOnly(String overlayName) {
