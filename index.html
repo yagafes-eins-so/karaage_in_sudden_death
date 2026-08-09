@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/karaage_in_sudden_death/">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="からあげ in! - 文化祭ミニゲーム">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <!-- GitHub Pagesでリポジトリ配下(例: /karaage-in/)に置く場合は
+       base href をリポジトリ名に合わせて書き換えるか、
+       flutter build web --base-href "/karaage-in/" を使う -->
+
+  <title>からあげ in!</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #3A2A1E;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFF6E4;
+      font-family: sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      background: #3A2A1E;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">よみこみちゅう...</div>
+  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Flutterが最初のフレームを描画したタイミングで発火するイベント。
+    // これを合図にローディング表示を消す(消し忘れると永久に上へ重なったままになる)。
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('loading');
+      if (el) el.remove();
+    });
+    // 保険: 万一イベントが発火しない環境向けに、一定時間後は強制的に消す。
+    setTimeout(function () {
+      var el = document.getElementById('loading');
+      if (el) el.remove();
+    }, 8000);
+  </script>
+</body>
+</html>
